@@ -99,7 +99,7 @@ class StatusNotifier(object):
 
     def __call__(self, status):
         self.task.update_state(state=status)
-        self.task.send_event('task-custom')
+        self.task.send_event('task-' + status.lower().replace(' ', '_'))
 
 
 @app.task(task_track_started=True, ignore_result=True, bind=True)
