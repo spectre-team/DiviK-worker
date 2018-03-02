@@ -105,7 +105,14 @@ class StatusNotifier(object):
 
 
 @app.task(task_track_started=True, ignore_result=True, bind=True)
-def divik(self, dataset_name: str, options: mh.DivikOptions, analysis_name: str):
+def divik(self, AnalysisName: str, DatasetName: str, **kwargs):
+    # preprocessing of our current strange format
+    analysis_name = AnalysisName
+    dataset_name = DatasetName
+    options = mh.DivikOptions(
+        AmplitudeFiltration=True, VarianceFiltration=True,
+        **kwargs)
+
     old_outs = sys.stdout, sys.stderr
     rlevel = self.app.conf.worker_redirect_stdouts_level
     notify = StatusNotifier(self)
