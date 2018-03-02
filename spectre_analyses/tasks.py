@@ -99,7 +99,9 @@ class StatusNotifier(object):
 
     def __call__(self, status):
         self.task.update_state(state=status)
-        self.task.send_event('task-' + status.lower().replace(' ', '_'))
+        # Line below updates the status in Celery Flower.
+        # It is disabled since Flower disables TERMINATE button for custom state.
+        #self.task.send_event('task-' + status.lower().replace(' ', '_'))
 
 
 @app.task(task_track_started=True, ignore_result=True, bind=True)
