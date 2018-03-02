@@ -104,7 +104,7 @@ class StatusNotifier(object):
         #self.task.send_event('task-' + status.lower().replace(' ', '_'))
 
 
-@app.task(task_track_started=True, ignore_result=True, bind=True)
+@app.task(task_track_started=True, ignore_result=True, bind=True, name="analysis.divik")
 def divik(self, AnalysisName: str, DatasetName: str, **kwargs):
     # preprocessing of our current strange format
     analysis_name = AnalysisName
