@@ -1,0 +1,27 @@
+[
+    {
+        "key": "AnalysisName",
+        "title": "Name of the analysis"
+    },
+    {
+        "key": "DatasetName",
+        "title": "Dataset",
+        "titleMap": "$DATASETS"
+    },
+    {
+        "type": "section",
+        "title": "Advanced settings",
+        "expandable": true,
+        "expanded": false,
+        "items":
+        [
+            "Levels",
+            "MaxK",
+            "PercentSizeLimit",
+            "FeaturePreservationLimit",
+            "Metric",
+            "MaxComponentsForDecomposition",
+            "KMeansMaxIters"
+        ]
+    }
+]

@@ -1,0 +1,94 @@
+{
+    "type": "object",
+    "title": "DiviK",
+    "required":
+    [
+        "AnalysisName",
+        "DatasetName",
+        "UseLevels",
+        "Levels",
+        "MaxK",
+        "PercentSizeLimit",
+        "FeaturePreservationLimit",
+        "Metric",
+        "MaxComponentsForDecomposition",
+        "KMeansMaxIters"
+    ],
+    "properties":
+    {
+        "AnalysisName":
+        {
+            "title": "Name of your analysis",
+            "type": "string"
+        },
+        "DatasetName":
+        {
+            "title": "Dataset you want to segment",
+            "type": "string"
+        },
+        "UseLevels":
+        {
+            "title": "Use levels",
+            "description": "Using levels may stop analysis before other stop conditions are met.",
+            "type": "boolean",
+            "default": true
+        },
+        "Levels":
+        {
+            "title": "How many levels deep should the analysis go?",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 3
+        },
+        "MaxK":
+        {
+            "title": "Maximal number of clusters",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 20,
+            "default": 10
+        },
+        "PercentSizeLimit":
+        {
+            "title": "Lower bound on percent of spectra until stop",
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "multipleOf": 0.001,
+            "default": 0.001
+        },
+        "FeaturePreservationLimit":
+        {
+            "title": "Lower bound on percent of features preserved",
+            "type": "number",
+            "minimum": 0.001,
+            "maximum": 1,
+            "multipleOf": 0.001,
+            "default": 0.05
+        },
+        "Metric":
+        {
+            "title": "Distance metric",
+            "type": "string",
+            "enum": ["correlation", "jaccard", "euclidean", "cosine"],
+            "default": "correlation"
+        },
+        "MaxComponentsForDecomposition":
+        {
+            "title": "Maximal number of components used for selection of features",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 15,
+            "default": 10
+        },
+        "KMeansMaxIters":
+        {
+            "title": "Maximal number of iterations used in k-means algorithm",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000,
+            "default": 100
+        }
+    }
+}
