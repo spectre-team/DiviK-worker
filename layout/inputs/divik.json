@@ -16,12 +16,45 @@
         "items":
         [
             "UseLevels",
-            "Levels",
+            {
+                "type": "help",
+                "condition": "model.UseLevels",
+                "helpvalue": "Specify, how many levels to use as stop condition"
+            },
+            {
+                "key": "Levels",
+                "condition": "model.UseLevels",
+                "required": true
+            },
+            {
+                "type": "help",
+                "helpvalue": "Maximal number of clusters tried in k-means algorithm"
+            },
             "MaxK",
+            {
+                "type": "help",
+                "helpvalue": "Minimal percentage of initial size for subregion to be split"
+            },
             "PercentSizeLimit",
+            {
+                "type": "help",
+                "helpvalue": "Minimal percentage of features used for split"
+            },
             "FeaturePreservationLimit",
+            {
+                "type": "help",
+                "helpvalue": "Distance metric"
+            },
             "Metric",
+            {
+                "type": "help",
+                "helpvalue": "Maximal number of components used for features filtering"
+            },
             "MaxComponentsForDecomposition",
+            {
+                "type": "help",
+                "helpvalue": "Maximal number of k-means iterations"
+            },
             "KmeansMaxIters"
         ]
     }
