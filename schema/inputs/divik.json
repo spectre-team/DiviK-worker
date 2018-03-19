@@ -12,7 +12,7 @@
         "FeaturePreservationLimit",
         "Metric",
         "MaxComponentsForDecomposition",
-        "KMeansMaxIters"
+        "KmeansMaxIters"
     ],
     "properties":
     {
@@ -82,7 +82,7 @@
             "maximum": 15,
             "default": 10
         },
-        "KMeansMaxIters":
+        "KmeansMaxIters":
         {
             "title": "Maximal number of iterations used in k-means algorithm",
             "type": "integer",
