@@ -6,7 +6,7 @@
         "AnalysisName",
         "DatasetName",
         "UseLevels",
-        "Levels",
+        "Level",
         "MaxK",
         "PercentSizeLimit",
         "FeaturePreservationLimit",
@@ -33,7 +33,7 @@
             "type": "boolean",
             "default": true
         },
-        "Levels":
+        "Level":
         {
             "title": "How many levels deep should the analysis go?",
             "type": "integer",

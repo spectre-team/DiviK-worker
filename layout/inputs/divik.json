@@ -22,7 +22,7 @@
                 "helpvalue": "Specify, how many levels to use as stop condition"
             },
             {
-                "key": "Levels",
+                "key": "Level",
                 "condition": "model.UseLevels",
                 "required": true
             },
