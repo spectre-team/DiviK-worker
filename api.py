@@ -19,7 +19,7 @@ import os
 import flask
 
 from common import Response
-from discover import file_with_datasets_substitution, unchanged_file
+from discover import file_with_datasets_substitution, unchanged_file, find_analysis_results
 
 app = flask.Flask(__name__)
 
@@ -36,3 +36,11 @@ def layout(endpoint: str, task_name: str) -> Response:
     """Get dynamic layout description"""
     path = os.path.join('.', 'layout', endpoint, task_name + '.json')
     return file_with_datasets_substitution(path)
+
+
+@app.route('/results/<string:task_name>/')
+def results(task_name: str) -> Response:
+    "Get list of available results"
+    return flask.jsonify([
+        result._asdict() for result in find_analysis_results(task_name)
+    ]), 200
