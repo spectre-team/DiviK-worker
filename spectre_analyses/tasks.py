@@ -21,6 +21,7 @@ import os
 import pickle
 import re
 import shutil
+import signal
 import sys
 
 import celery
@@ -57,6 +58,31 @@ def _load_data(dataset_name) -> ty.Dataset:
         return spdata.reader.load_txt(infile)
 
 
+class Cleanup(object):
+    def __init__(self, path: str, old_signal=None):
+        self.path = path
+        self.old = old_signal
+
+    def __call__(self, signal_number, stack_frame):
+        if os.path.exists(self.path):
+            shutil.rmtree(self.path, ignore_errors=True)
+        if self.old is not None:
+            sys.exit(self.old.value)
+        else:
+            sys.exit(0)
+
+    def __repr__(self):
+        return "{0}({1},{2})".format(Cleanup.__name__, self.path, self.old)
+
+
+@contextmanager
+def analysis_cleanup(path: str):
+    cleanup = Cleanup(path)
+    cleanup.old = signal.signal(signal.SIGTERM, cleanup)
+    yield
+    signal.signal(signal.SIGTERM, cleanup.old)
+
+
 @contextmanager
 def _open_analysis(dataset_name: str, algorithm_name: str, analysis_name: str):
     analysis_root = os.path.join(
@@ -67,7 +93,8 @@ def _open_analysis(dataset_name: str, algorithm_name: str, analysis_name: str):
     )
     os.makedirs(analysis_root)
     try:
-        yield analysis_root
+        with analysis_cleanup(analysis_root):
+            yield analysis_root
         dest_root = os.path.join(
             STATUS_PATHS['done'],
             dataset_name,
