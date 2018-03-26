@@ -1,1 +1,14 @@
-[]
+[
+    {
+        "aspect": "summary",
+        "friendly_name": "Analysis summary",
+        "description": "Quantities describing segmentation",
+        "query_format":
+        {
+            "title": "dummy",
+            "type": "boolean",
+            "default": false
+        },
+        "output_type": "table"
+    }
+]
