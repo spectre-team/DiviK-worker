@@ -58,7 +58,7 @@ def _load_data(dataset_name) -> ty.Dataset:
         return spdata.reader.load_txt(infile)
 
 
-class Cleanup(object):
+class Cleanup:
     def __init__(self, path: str, old_signal=None):
         self.path = path
         self.old = old_signal
