@@ -71,9 +71,6 @@ class Cleanup(object):
         else:
             sys.exit(0)
 
-    def __repr__(self):
-        return "{0}({1},{2})".format(Cleanup.__name__, self.path, self.old)
-
 
 @contextmanager
 def analysis_cleanup(path: str):
