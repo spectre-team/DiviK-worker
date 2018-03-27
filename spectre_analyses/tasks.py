@@ -96,29 +96,15 @@ class cleanup(hijack_revoke):
 
 @contextmanager
 def _open_analysis(dataset_name: str, algorithm_name: str, analysis_name: str):
-    analysis_root = os.path.join(
-        STATUS_PATHS['processing'],
-        dataset_name,
-        algorithm_name,
-        analysis_name,
-    )
+    path_components = dataset_name, algorithm_name, analysis_name
+    analysis_root = os.path.join(STATUS_PATHS['processing'], *path_components)
     os.makedirs(analysis_root)
     try:
         with cleanup(analysis_root):
             yield analysis_root
-        dest_root = os.path.join(
-            STATUS_PATHS['done'],
-            dataset_name,
-            algorithm_name,
-            analysis_name
-        )
+        dest_root = os.path.join(STATUS_PATHS['done'], *path_components)
     except Exception as ex:
-        dest_root = os.path.join(
-            STATUS_PATHS['failed'],
-            dataset_name,
-            algorithm_name,
-            analysis_name
-        )
+        dest_root = os.path.join(STATUS_PATHS['failed'], *path_components)
         raise RuntimeError() from ex
     finally:
         shutil.move(analysis_root, dest_root)
