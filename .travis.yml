@@ -17,34 +17,30 @@ install:
 script:
 - python -m unittest discover
 - |
-  docker build -t spectreteam/divik-worker:latest \
-               -t spectreteam/divik-worker:beta \
-               -t spectreteam/divik-worker:$MAJOR.$MINOR.$FIXUP \
-               -t spectreteam/divik-worker:$MAJOR.$MINOR.$FIXUP-beta \
-               -t spectreteam/divik-worker:$MAJOR.$MINOR.$FIXUP-alpha \
-               -t spectreteam/divik-worker:$MAJOR.$MINOR \
-               -t spectreteam/divik-worker:$MAJOR.$MINOR-beta \
-               -t spectreteam/divik-worker:$MAJOR.$MINOR-alpha \
-               -t spectreteam/divik-worker:$MAJOR \
-               -t spectreteam/divik-worker:$MAJOR-beta \
-               -t spectreteam/divik-worker:$MAJOR-alpha \
+  if [ $TRAVIS_BRANCH = "master" ]; then
+      STAGE=
+  elif [ $TRAVIS_BRANCH = "develop" ]; then
+      STAGE=beta
+  else
+      STAGE=alpha
+  fi
+
+  docker build -t $TRAVIS_REPO_SLUG:latest \
+               -t $TRAVIS_REPO_SLUG:beta \
+               -t $TRAVIS_REPO_SLUG:$MAJOR.$MINOR.$FIXUP${STAGE:+-$STAGE} \
+               -t $TRAVIS_REPO_SLUG:$MAJOR.$MINOR${STAGE:+-$STAGE} \
+               -t $TRAVIS_REPO_SLUG:$MAJOR${STAGE:+-$STAGE} \
                .
   docker images
   if [ $TRAVIS_PULL_REQUEST = "false" ]; then
+      docker push $TRAVIS_REPO_SLUG:$MAJOR.$MINOR.$FIXUP${STAGE:+-$STAGE}
+      docker push $TRAVIS_REPO_SLUG:$MAJOR.$MINOR${STAGE:+-$STAGE}
+      docker push $TRAVIS_REPO_SLUG:$MAJOR${STAGE:+-$STAGE}
       if [ $TRAVIS_BRANCH = "master" ]; then
-          docker push spectreteam/divik-worker:latest
-          docker push spectreteam/divik-worker:$MAJOR.$MINOR.$FIXUP
-          docker push spectreteam/divik-worker:$MAJOR.$MINOR
-          docker push spectreteam/divik-worker:$MAJOR
+          docker push $TRAVIS_REPO_SLUG:latest
       elif [ $TRAVIS_BRANCH = "develop" ]; then
-          docker push spectreteam/divik-worker:beta
-          docker push spectreteam/divik-worker:$MAJOR.$MINOR.$FIXUP-beta
-          docker push spectreteam/divik-worker:$MAJOR.$MINOR-beta
-          docker push spectreteam/divik-worker:$MAJOR-beta
+          docker push $TRAVIS_REPO_SLUG:beta
       fi
-      docker push spectreteam/divik-worker:$MAJOR.$MINOR.$FIXUP-alpha
-      docker push spectreteam/divik-worker:$MAJOR.$MINOR-alpha
-      docker push spectreteam/divik-worker:$MAJOR-alpha
   fi
 notifications:
   webhooks:
