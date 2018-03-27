@@ -14,7 +14,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from abc import ABCMeta, abstractmethod
 from contextlib import contextmanager
 from functools import partial
 import json
@@ -63,17 +62,14 @@ _DEFAULT = signal.SIG_DFL
 _CELERY_REVOKE = signal.SIGTERM
 
 
-class hijack_revoke(metaclass=ABCMeta):
+class hijack_revoke:
     """Context manager to hijack Celery revoke signal handling"""
-    def __init__(self):
+    def __init__(self, handler):
         self._previous_handler = _DEFAULT
-
-    @abstractmethod
-    def __call__(self, sig_num, stack_frame):
-        raise NotImplementedError(self.__call__.__name__)
+        self._handler = handler
 
     def _hijack(self, sig_num, stack_frame):
-        self(sig_num, stack_frame)
+        self._handler(sig_num, stack_frame)
         os.kill(os.getpid(), sig_num)
 
     def __enter__(self):
@@ -84,14 +80,10 @@ class hijack_revoke(metaclass=ABCMeta):
         signal.signal(_CELERY_REVOKE, self._previous_handler)
 
 
-class cleanup(hijack_revoke):
-    def __init__(self, path: str):
-        super(hijack_revoke, self).__init__()
-        self.path = path
-
-    def __call__(self, signal_number, stack_frame):
-        if os.path.exists(self.path):
-            shutil.rmtree(self.path, ignore_errors=True)
+def cleanup(path: str, *_):
+    """Clean up analysis directory"""
+    if os.path.exists(path):
+        shutil.rmtree(path, ignore_errors=True)
 
 
 @contextmanager
@@ -99,8 +91,9 @@ def _open_analysis(dataset_name: str, algorithm_name: str, analysis_name: str):
     path_components = dataset_name, algorithm_name, analysis_name
     analysis_root = os.path.join(STATUS_PATHS['processing'], *path_components)
     os.makedirs(analysis_root)
+    cleanup_root = partial(cleanup, analysis_root)
     try:
-        with cleanup(analysis_root):
+        with hijack_revoke(cleanup_root):
             yield analysis_root
         dest_root = os.path.join(STATUS_PATHS['done'], *path_components)
     except Exception as ex:
