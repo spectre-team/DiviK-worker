@@ -14,6 +14,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from abc import ABCMeta, abstractmethod
 from contextlib import contextmanager
 from functools import partial
 import json
@@ -58,26 +59,39 @@ def _load_data(dataset_name) -> ty.Dataset:
         return spdata.reader.load_txt(infile)
 
 
-class Cleanup:
-    def __init__(self, path: str, old_signal=None):
+_DEFAULT = signal.SIG_DFL
+_CELERY_REVOKE = signal.SIGTERM
+
+
+class hijack_revoke(metaclass=ABCMeta):
+    """Context manager to hijack Celery revoke signal handling"""
+    def __init__(self):
+        self._previous_handler = _DEFAULT
+
+    @abstractmethod
+    def __call__(self, sig_num, stack_frame):
+        raise NotImplementedError(self.__call__.__name__)
+
+    def _hijack(self, sig_num, stack_frame):
+        self(sig_num, stack_frame)
+        os.kill(os.getpid(), sig_num)
+
+    def __enter__(self):
+        self._previous_handler = (signal.signal(_CELERY_REVOKE, self._hijack) or _DEFAULT)
+        return self
+
+    def __exit__(self, *args):
+        signal.signal(_CELERY_REVOKE, self._previous_handler)
+
+
+class cleanup(hijack_revoke):
+    def __init__(self, path: str):
+        super(hijack_revoke, self).__init__()
         self.path = path
-        self.old = old_signal
 
     def __call__(self, signal_number, stack_frame):
         if os.path.exists(self.path):
             shutil.rmtree(self.path, ignore_errors=True)
-        if self.old is not None:
-            sys.exit(self.old.value)
-        else:
-            sys.exit(0)
-
-
-@contextmanager
-def analysis_cleanup(path: str):
-    cleanup = Cleanup(path)
-    cleanup.old = signal.signal(signal.SIGTERM, cleanup)
-    yield
-    signal.signal(signal.SIGTERM, cleanup.old)
 
 
 @contextmanager
@@ -90,7 +104,7 @@ def _open_analysis(dataset_name: str, algorithm_name: str, analysis_name: str):
     )
     os.makedirs(analysis_root)
     try:
-        with analysis_cleanup(analysis_root):
+        with cleanup(analysis_root):
             yield analysis_root
         dest_root = os.path.join(
             STATUS_PATHS['done'],
