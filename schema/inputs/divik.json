@@ -6,13 +6,13 @@
         "AnalysisName",
         "DatasetName",
         "UseLevels",
-        "Levels",
+        "Level",
         "MaxK",
         "PercentSizeLimit",
         "FeaturePreservationLimit",
         "Metric",
         "MaxComponentsForDecomposition",
-        "KMeansMaxIters"
+        "KmeansMaxIters"
     ],
     "properties":
     {
@@ -33,7 +33,7 @@
             "type": "boolean",
             "default": true
         },
-        "Levels":
+        "Level":
         {
             "title": "How many levels deep should the analysis go?",
             "type": "integer",
@@ -82,7 +82,7 @@
             "maximum": 15,
             "default": 10
         },
-        "KMeansMaxIters":
+        "KmeansMaxIters":
         {
             "title": "Maximal number of iterations used in k-means algorithm",
             "type": "integer",

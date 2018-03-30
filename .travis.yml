@@ -6,7 +6,9 @@ services:
 - docker
 env:
   global:
-  - VERSION=1.0.0
+  - MAJOR=1
+  - MINOR=0
+  - FIXUP=1
   - secure: S2QBt73XqZK7qJFavJJs24kr+/VfnhjIToG0+6Y0Cl+rewfao+U+Gx9jgSpnxa/xPjEHJIPT1cotxEBxG52qk5xs+Ji+XhhTNU0Rz3dzG339ggLbIVId7LcsXajFyQs90B4tvt9v2ita+5AnAh4RGRX4rKowb1AhWZAsZ0SkSFlse3yUiv2cSpvM+VjrnLbiyYkgwnphZVkPVJDQVL2j8z8nCwHAlSKgnhbHBO6j8KRP9ovxkPoqwGxyNndwa6fhlHU7GnhcM5pHn12VGcs8J6H2OvfwlN/0CAJ4TmC1NPypQgokUCas1jCdysPq7kzEyXnI+TJFumAqBOwRLzspHHR+BnJZu5CvRV2ZIMoOPm8dAMKFoct38cIeyNUg2XdCwbIYRNF/TieYFlNa4ufetlc+0c2GzjaB8pBk2HWalfbBjnaUXL7Rjy4msdAZeWJ/nL7abJ5ChbKMdUV2p0hypP1Gkqv5jz5a3ww/urmUdiDdnk6slsIASnyKyI0lie1B5NlbqYf1oWnsDxHLIXFBSdjC5HnZoT9f/1QZHmwqWj7N+6cmiXzTwmBSTx+fUt/JKxUJXiBS+teMEezmUZFaQpZhbNdx+KMcf7aEZuwvUOufcpKmmleu24n0gyxXdabPVKHR30+mhKr+2eWRXJjqS6elnHVURo2WD47DTCqO9Tw=
   - secure: 3clSReQmndEWCubzo9jW8/CwU18tNSEstd8WB9Qvp9/2hmR/Nc8fSzpmUWZMUJ04urvBCrIlLXRCiE7/3S7eS0BKxrj/wLFOfIJtXG+/T84EsqcOeiV/gQ+8IAMzR3tbkl/1ztD4fyd8iTLWUAaq2VQtr19TpoPe10RaZL2Stalf9PlS91UMBbzqEFRR3CFaXzB5314Uc34GMEOvXiVKxEZBiBO6cVDveW8ier722TMSYd6ECZIxnC/Z7xldksFuaPH1cdx3gKHlQgr+4T6ZYE26GQ2gSSHKs6gFN4iFNufs830tBNrwVLZKmFwmGtmMVV2dHAvrZWph5Dj6HgIid+LAKzhp0xmKOtV9YgvZsAqwfFf66eJDt5XUS0NSUtQyujt9TtQ24+onXoStr0EOUl5u8au2bWklhYy1vTRWi+aeq1BHnBwJUCXDkeJ3+xNZTGilJvRB0Lk7fJbO980TmIIL6gHMjPLs7YD9dJrFzJrGNwlbuNF0uC2lU8H9CRi1+VZAZ+GV8/UfFfX2r10wPwT00i74mcQbyRpuh870OLl5ERjtJ84JNDhYK9cIIOaASn0dhmUuPN/gZnENr1zfqJtrmzkXUMF0iRxWm7GKbAr00L4/q35b93LgRdugYkuX8mEscHuVpMqlxpxIQvApr4cQvvbepDksY9jyKRwUYX4=
 install:
@@ -15,17 +17,30 @@ install:
 script:
 - python -m unittest discover
 - |
-  docker build -t spectreteam/divik-worker:latest -t spectreteam/divik-worker:beta -t spectreteam/divik-worker:$VERSION -t spectreteam/divik-worker:$VERSION-beta -t spectreteam/divik-worker:$VERSION-alpha .
+  if [ $TRAVIS_BRANCH = "master" ]; then
+      STAGE=
+  elif [ $TRAVIS_BRANCH = "develop" ]; then
+      STAGE=beta
+  else
+      STAGE=alpha
+  fi
+
+  docker build -t $TRAVIS_REPO_SLUG:latest \
+               -t $TRAVIS_REPO_SLUG:beta \
+               -t $TRAVIS_REPO_SLUG:$MAJOR.$MINOR.$FIXUP${STAGE:+-$STAGE} \
+               -t $TRAVIS_REPO_SLUG:$MAJOR.$MINOR${STAGE:+-$STAGE} \
+               -t $TRAVIS_REPO_SLUG:$MAJOR${STAGE:+-$STAGE} \
+               .
   docker images
   if [ $TRAVIS_PULL_REQUEST = "false" ]; then
+      docker push $TRAVIS_REPO_SLUG:$MAJOR.$MINOR.$FIXUP${STAGE:+-$STAGE}
+      docker push $TRAVIS_REPO_SLUG:$MAJOR.$MINOR${STAGE:+-$STAGE}
+      docker push $TRAVIS_REPO_SLUG:$MAJOR${STAGE:+-$STAGE}
       if [ $TRAVIS_BRANCH = "master" ]; then
-          docker push spectreteam/divik-worker:latest
-          docker push spectreteam/divik-worker:$VERSION
+          docker push $TRAVIS_REPO_SLUG:latest
       elif [ $TRAVIS_BRANCH = "develop" ]; then
-          docker push spectreteam/divik-worker:beta
-          docker push spectreteam/divik-worker:$VERSION-beta
+          docker push $TRAVIS_REPO_SLUG:beta
       fi
-      docker push spectreteam/divik-worker:$VERSION-alpha
   fi
 notifications:
   webhooks:
