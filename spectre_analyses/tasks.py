@@ -98,7 +98,7 @@ def _open_analysis(dataset_name: str, algorithm_name: str, analysis_name: str):
         dest_root = os.path.join(STATUS_PATHS['done'], *path_components)
     except Exception as ex:
         dest_root = os.path.join(STATUS_PATHS['failed'], *path_components)
-        raise RuntimeError() from ex
+        raise RuntimeError('Analysis failed.') from ex
     finally:
         shutil.move(analysis_root, dest_root)
 
