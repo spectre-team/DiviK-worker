@@ -62,22 +62,23 @@ _DEFAULT = signal.SIG_DFL
 _CELERY_REVOKE = signal.SIGTERM
 
 
-class hijack_revoke:
+class signal_trap:
     """Context manager to hijack Celery revoke signal handling"""
-    def __init__(self, handler):
+    def __init__(self, handler, signal_=_CELERY_REVOKE):
         self._previous_handler = _DEFAULT
         self._handler = handler
+        self._signal = signal_
 
     def _hijack(self, sig_num, stack_frame):
         self._handler(sig_num, stack_frame)
         os.kill(os.getpid(), sig_num)
 
     def __enter__(self):
-        self._previous_handler = (signal.signal(_CELERY_REVOKE, self._hijack) or _DEFAULT)
+        self._previous_handler = (signal.signal(self._signal, self._hijack) or _DEFAULT)
         return self
 
     def __exit__(self, *args):
-        signal.signal(_CELERY_REVOKE, self._previous_handler)
+        signal.signal(self._signal, self._previous_handler)
 
 
 def cleanup(path: str, *_):
@@ -93,7 +94,7 @@ def _open_analysis(dataset_name: str, algorithm_name: str, analysis_name: str):
     os.makedirs(analysis_root)
     cleanup_root = partial(cleanup, analysis_root)
     try:
-        with hijack_revoke(cleanup_root):
+        with signal_trap(cleanup_root):
             yield analysis_root
         dest_root = os.path.join(STATUS_PATHS['done'], *path_components)
     except Exception as ex:
