@@ -21,6 +21,7 @@ import os
 import pickle
 import re
 import shutil
+import signal
 import sys
 
 import celery
@@ -57,31 +58,48 @@ def _load_data(dataset_name) -> ty.Dataset:
         return spdata.reader.load_txt(infile)
 
 
+_DEFAULT = signal.SIG_DFL
+_CELERY_REVOKE = signal.SIGTERM
+
+
+class signal_trap:
+    """Context manager to hijack Celery revoke signal handling"""
+    def __init__(self, handler, signal_=_CELERY_REVOKE):
+        self._previous_handler = _DEFAULT
+        self._handler = handler
+        self._signal = signal_
+
+    def _hijack(self, sig_num, stack_frame):
+        self._handler(sig_num, stack_frame)
+        os.kill(os.getpid(), sig_num)
+
+    def __enter__(self):
+        self._previous_handler = (signal.signal(self._signal, self._hijack) or _DEFAULT)
+        return self
+
+    def __exit__(self, *args):
+        signal.signal(self._signal, self._previous_handler)
+
+
+def cleanup(path: str, *_):
+    """Clean up analysis directory"""
+    if os.path.exists(path):
+        shutil.rmtree(path, ignore_errors=True)
+
+
 @contextmanager
 def _open_analysis(dataset_name: str, algorithm_name: str, analysis_name: str):
-    analysis_root = os.path.join(
-        STATUS_PATHS['processing'],
-        dataset_name,
-        algorithm_name,
-        analysis_name,
-    )
+    path_components = dataset_name, algorithm_name, analysis_name
+    analysis_root = os.path.join(STATUS_PATHS['processing'], *path_components)
     os.makedirs(analysis_root)
+    cleanup_root = partial(cleanup, analysis_root)
     try:
-        yield analysis_root
-        dest_root = os.path.join(
-            STATUS_PATHS['done'],
-            dataset_name,
-            algorithm_name,
-            analysis_name
-        )
+        with signal_trap(cleanup_root):
+            yield analysis_root
+        dest_root = os.path.join(STATUS_PATHS['done'], *path_components)
     except Exception as ex:
-        dest_root = os.path.join(
-            STATUS_PATHS['failed'],
-            dataset_name,
-            algorithm_name,
-            analysis_name
-        )
-        raise RuntimeError() from ex
+        dest_root = os.path.join(STATUS_PATHS['failed'], *path_components)
+        raise RuntimeError('Analysis failed.') from ex
     finally:
         shutil.move(analysis_root, dest_root)
 
