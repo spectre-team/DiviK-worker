@@ -18,6 +18,7 @@ import os
 
 import flask
 
+import aspect
 from common import Response
 from discover import file_with_datasets_substitution, unchanged_file, find_analysis_results
 
@@ -44,3 +45,13 @@ def results(task_name: str) -> Response:
     return flask.jsonify([
         result._asdict() for result in find_analysis_results(task_name)
     ]), 200
+
+
+@app.route('/results/<string:task_name>/<string:analysis_id>/<string:aspect_name>/', methods=['POST'])
+def analysis_aspect(task_name: str, analysis_id: str, aspect_name: str) -> Response:
+    "Get aspect result"
+    try:
+        aspect_builder = getattr(aspect, aspect_name)
+    except AttributeError:
+        return "Unknown aspect: " + aspect_name, 404
+    return aspect_builder(analysis_id)

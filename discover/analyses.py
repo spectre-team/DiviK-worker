@@ -59,13 +59,26 @@ AnalysisResult = NamedTuple('AnalysisResult', [
 ])
 
 
-def find_analysis_results(analysis_type: str) -> List[AnalysisResult]:
-    "Find available results of analyses of given type"
+def find_all_analyses_paths(analysis_type: str) -> List[Path]:
+    "Find paths of all available analyses"
     datasets = [dataset['value'] for dataset in get_datasets()]
     analysis_root = partial(analysis_directory, analysis_type)
     search_paths = only_existing(analysis_root(dataset) for dataset in datasets)
     analyses = chain.from_iterable(folders_in(path) for path in search_paths)
+    return list(analyses)
+
+
+def find_analysis_results(analysis_type: str) -> List[AnalysisResult]:
+    "Find available results of analyses of given type"
+    analyses = find_all_analyses_paths(analysis_type)
     return [
         AnalysisResult(name=user_friendly_name(path), id=analysis_id(path))
         for path in analyses
     ]
+
+def find_analysis_by_id(analysis_type: str, some_id: str) -> Path:
+    "Find location of analysis by its id"
+    for analysis in find_all_analyses_paths(analysis_type):
+        if analysis_id(analysis) == some_id:
+            return analysis
+    raise ValueError("Unknown id of {0} analysis: {1}".format(analysis_type, some_id))

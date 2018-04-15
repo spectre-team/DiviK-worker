@@ -110,8 +110,38 @@ class TestAnalysisId(unittest.TestCase):
 @patch.object(an, 'only_folders', new=mock_only_folders)
 @patch.object(os, 'listdir', new=mock_listdir)
 @patch.object(an, 'get_datasets', new=MagicMock(return_value=[
-        {'value': 'peptides-1'}, {'value': 'peptides-2'}]))
+    {'value': 'peptides-1'}, {'value': 'peptides-2'}]))
+class TestFindAllAnalysesPaths(unittest.TestCase):
+    def test_finds_paths(self):
+        results = an.find_all_analyses_paths('divik')
+        self.assertEqual(5, len(results))
+
+
+@patch.object(an, 'find_all_analyses_paths', new=MagicMock(return_value=[
+    os.path.join(ROOT, 'data', 'peptides-1', 'divik', 'blah'),
+    os.path.join(ROOT, 'data', 'peptides-1', 'divik', 'wololo'),
+    os.path.join(ROOT, 'data', 'peptides-1', 'divik', 'blaah'),
+    os.path.join(ROOT, 'data', 'peptides-2', 'divik', 'sample analysis'),
+    os.path.join(ROOT, 'data', 'peptides-2', 'divik', 'this is boring')
+]))
 class TestFindAnalysisResults(unittest.TestCase):
     def test_finds_results(self):
         results = an.find_analysis_results('divik')
         self.assertEqual(5, len(results))
+        for result in results:
+            self.assertIsInstance(result, an.AnalysisResult)
+
+
+@patch.object(an, 'find_all_analyses_paths', new=MagicMock(return_value=[
+    os.path.join(ROOT, 'data', 'peptides-1', 'divik', 'blah'),
+    os.path.join(ROOT, 'data', 'peptides-1', 'divik', 'wololo'),
+    os.path.join(ROOT, 'data', 'peptides-1', 'divik', 'blaah'),
+    os.path.join(ROOT, 'data', 'peptides-2', 'divik', 'sample analysis'),
+    os.path.join(ROOT, 'data', 'peptides-2', 'divik', 'this is boring')
+]))
+class TestFindAnalysisById(unittest.TestCase):
+    def test_resolves_analysis_path_by_its_id(self):
+        sample_path = os.path.join(ROOT, 'data', 'peptides-1', 'divik', 'blah')
+        sample_id = an.analysis_id(sample_path)
+        resolved = an.find_analysis_by_id('divik', sample_id)
+        self.assertEqual(sample_path, resolved)

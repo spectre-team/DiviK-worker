@@ -1,4 +1,4 @@
-"""Discovery-related methods
+"""Aspects of DiviK results
 
 Copyright 2018 Spectre Team
 
@@ -14,5 +14,4 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from .datasets import file_with_datasets_substitution, unchanged_file
-from .analyses import find_analysis_results, find_analysis_by_id
+from ._summary import aspect as summary
