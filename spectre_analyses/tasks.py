@@ -71,6 +71,7 @@ class signal_trap:
 
     def _hijack(self, sig_num, stack_frame):
         self._handler(sig_num, stack_frame)
+        self.__exit__()
         os.kill(os.getpid(), sig_num)
 
     def __enter__(self):
@@ -93,15 +94,18 @@ def _open_analysis(dataset_name: str, algorithm_name: str, analysis_name: str):
     analysis_root = os.path.join(STATUS_PATHS['processing'], *path_components)
     os.makedirs(analysis_root)
     cleanup_root = partial(cleanup, analysis_root)
+    dest_root = None
     try:
         with signal_trap(cleanup_root):
             yield analysis_root
         dest_root = os.path.join(STATUS_PATHS['done'], *path_components)
     except Exception as ex:
-        dest_root = os.path.join(STATUS_PATHS['failed'], *path_components)
         raise RuntimeError('Analysis failed.') from ex
     finally:
-        shutil.move(analysis_root, dest_root)
+        if dest_root is None:  # we are in the Exception case
+            dest_root = os.path.join(STATUS_PATHS['failed'], *path_components)
+        if os.path.exists(analysis_root):
+            shutil.move(analysis_root, dest_root)
 
 
 def _simply_typed(result: mh.DivikResult):
