@@ -17,7 +17,7 @@ flask run -p 80 -h 0.0.0.0 & sleep 1s
 
 # start Celery worker
 echo "Starting Celery worker..."
-celery -A spectre_analyses worker --loglevel=info -n divik-worker@%h &
+celery -A spectre_analyses worker --loglevel=info -n divik-worker@%h -Q divik &
 
 # watch them running
 while sleep $INTERVAL; do
